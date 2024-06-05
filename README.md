@@ -1,3 +1,3 @@
 # quick_omniperf
 
-./quick_omiperf ./<executable>
+./quick_omiperf ./executable
