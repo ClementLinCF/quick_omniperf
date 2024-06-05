@@ -1,0 +1,45 @@
+#!/bin/bash
+
+# Check if at least one argument is provided
+if [ "$#" -lt 1 ]; then
+  echo "Usage: quick_omniperf <executable> [args...]"
+  exit 1
+fi
+
+rm -rf workloads
+
+KERNEL_NAME="test_kernel"
+EXECUTABLE=$1
+shift 1
+EXECUTABLE_ARGS="$@"
+
+# Export ROCPROF variable
+export ROCPROF=rocprofv2
+
+# Run the omniperf profile command
+omniperf profile -n "$KERNEL_NAME" -- "$EXECUTABLE" $EXECUTABLE_ARGS
+
+
+# Find the deepest subdirectory in workloads
+WORKLOAD_DIR="workloads"
+DEEPEST_SUBDIR="$WORKLOAD_DIR"
+
+while [ $(find "$DEEPEST_SUBDIR" -mindepth 1 -maxdepth 1 -type d | wc -l) -eq 1 ]; do
+  DEEPEST_SUBDIR=$(find "$DEEPEST_SUBDIR" -mindepth 1 -maxdepth 1 -type d)
+done
+
+# Get the absolute path of the deepest subdirectory
+ABSOLUTE_PATH=$(realpath "$DEEPEST_SUBDIR")
+
+# Output the absolute path for verification
+echo "The absolute path of the deepest subdirectory is $ABSOLUTE_PATH"
+
+
+PARENT_DIR=$(dirname "$DEEPEST_SUBDIR")
+
+
+# Run the omniperf analyze command
+omniperf analyze -p "$PARENT_DIR" &> analyze.txt
+
+echo "Analysis complete. Output saved to analyze.txt"
+
